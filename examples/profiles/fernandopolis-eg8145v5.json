@@ -1,0 +1,23 @@
+{
+  "city": "Fernandópolis",
+  "code": "fernandopolis",
+  "pop_id": 1,
+  "manufacturer": "Huawei",
+  "model": "EG8145V5",
+  "description": "Padrão Lab Fer — bancada Fernandópolis, WAN VLAN 10",
+  "wan_vlan": 10,
+  "acs_url": "http://SEU_IP_SERVIDOR:7547",
+  "acs_username": "inspear",
+  "acs_password": "inspear123",
+  "cr_username": "inspear-cr",
+  "cr_password": "inspear123",
+  "periodic_inform_interval": 300,
+  "wifi_24_ssid": "Lab-2.4G",
+  "wifi_5_ssid": "Lab-5G",
+  "pppoe_username": null,
+  "pppoe_password": null,
+  "wifi_24_password": null,
+  "wifi_5_password": null,
+  "auto_restore_enabled": true,
+  "source_device_serial": null
+}

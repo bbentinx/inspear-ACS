@@ -1,0 +1,6 @@
+serial_number,manufacturer,model,firmware,pppoe_login,pop_id,olt_id,pon_id,onu_id,mac_wan
+HWTC4857553A,Huawei,HG8245X6-10,V5R021C10S237,maria.silva@fibra,1,1,1,14,AA:BB:CC:DD:EE:01
+HWTC9123847B,Huawei,HG8245X6-10,V5R021C10S237,carlos.mendes@fibra,2,3,2,8,AA:BB:CC:DD:EE:02
+ZTEG4455123C,ZTE,F660,V8.0.10P1T8,ana.costa@fibra,1,2,1,22,11:22:33:44:55:01
+HWTC7788990D,Huawei,HG8245X6-10,V5R021C10S237,roberto.lima@fibra,1,1,2,5,AA:BB:CC:DD:EE:04
+FHOM2233445E,FiberHome,AN5506-04-F,RP2631,fernanda.rocha@fibra,2,3,1,11,22:33:44:55:66:01

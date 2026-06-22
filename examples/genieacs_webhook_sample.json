@@ -1,0 +1,19 @@
+{
+  "_id": "HWTC4857553A",
+  "InternetGatewayDevice.DeviceInfo.SerialNumber": "HWTC4857553A",
+  "InternetGatewayDevice.DeviceInfo.Manufacturer": "Huawei",
+  "InternetGatewayDevice.DeviceInfo.ModelName": "HG8245X6-10",
+  "InternetGatewayDevice.DeviceInfo.SoftwareVersion": "V5R021C10S237",
+  "InternetGatewayDevice.DeviceInfo.UpTime": 86400,
+  "InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.RXPower": -28.5,
+  "InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.TXPower": 2.1,
+  "InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.TransceiverTemperature": 42.3,
+  "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ConnectionStatus": "Connected",
+  "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username": "maria.silva@fibra",
+  "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ExternalIPAddress": "177.45.12.88",
+  "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.TotalAssociations": 8,
+  "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID": "FIBRA-MARIA",
+  "InternetGatewayDevice.DeviceInfo.X_HW_CpuUsage": 35,
+  "InternetGatewayDevice.DeviceInfo.X_HW_MemoryUsage": 58,
+  "_lastInform": "2026-06-22T12:00:00Z"
+}

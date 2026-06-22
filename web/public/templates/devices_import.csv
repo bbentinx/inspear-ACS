@@ -1,0 +1,3 @@
+serial_number,manufacturer,model,firmware,pppoe_login,pop_id,olt_id,pon_id,onu_id,mac_wan
+HWTC4857553A,Huawei,HG8245X6-10,V5R021C10S237,maria.silva@fibra,1,1,1,14,AA:BB:CC:DD:EE:01
+HWTC9123847B,Huawei,HG8245X6-10,V5R021C10S237,carlos.mendes@fibra,2,3,2,8,AA:BB:CC:DD:EE:02

@@ -1,0 +1,43 @@
+{
+  "device_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "serial_number": "HWTC4857553A",
+  "health_score": 52,
+  "health_status": "degraded",
+  "health_breakdown": {
+    "optical": 0,
+    "wan_pppoe": 25,
+    "ipv6_dns": 7,
+    "wifi": 15,
+    "system": 5
+  },
+  "diagnoses": [
+    {
+      "problem_code": "optical_low_crit",
+      "problem_label": "Sinal óptico crítico",
+      "severity": "crit",
+      "confidence": 92,
+      "evidences": [
+        "RX power = -28.5 dBm (limite crítico -27.0 dBm)"
+      ],
+      "counter_evidences": [],
+      "recommended_action": "Acionar campo: verificar conector, drop, CTO, fusão e splitter. Medir potência na ONT.",
+      "responsible_team": "field"
+    },
+    {
+      "problem_code": "ipv6_no_prefix",
+      "problem_label": "IPv6 sem prefixo (PD)",
+      "severity": "warn",
+      "confidence": 78,
+      "evidences": [
+        "IPv4 ativo",
+        "IPv6 status: no_prefix"
+      ],
+      "counter_evidences": [
+        "IPv6 pode estar desabilitado intencionalmente no plano"
+      ],
+      "recommended_action": "Verificar DHCPv6-PD no BNG, rota IPv6 e configuração da ONT.",
+      "responsible_team": "noc"
+    }
+  ],
+  "telegram_alert_example": "🔴 Inspear ACS — CRIT\nONT: HWTC4857553A\nCliente: Maria Silva\nProblema: Sinal óptico crítico\nAção: Acionar campo: verificar conector, drop, CTO..."
+}

@@ -1,0 +1,40 @@
+{
+  "serial_number": "HWTC4857553A",
+  "manufacturer": "Huawei",
+  "model": "HG8245X6-10",
+  "firmware": "V5R021C10S237",
+  "adapter": "huawei",
+  "is_online": true,
+  "mgmt_ip": "10.10.1.45",
+  "optical_rx_power": -28.5,
+  "optical_tx_power": 2.1,
+  "optical_temperature": 42.3,
+  "optical_voltage": 3.28,
+  "uptime_seconds": 86400,
+  "reboot_count_24h": 0,
+  "wan_status": "up",
+  "pppoe_status": "connected",
+  "pppoe_username": "maria.silva@fibra",
+  "ipv4_address": "177.45.12.88",
+  "ipv6_prefix": null,
+  "ipv6_status": "no_prefix",
+  "dns_servers": ["192.168.1.1"],
+  "dns_status": "ok",
+  "lan_status": "up",
+  "lan_speed_mbps": 1000,
+  "lan_errors": 0,
+  "wifi_ssid": "FIBRA-MARIA",
+  "wifi_channel": 6,
+  "wifi_clients_count": 8,
+  "wifi_signal_avg": -62,
+  "cpu_usage": 35,
+  "memory_usage": 58,
+  "recent_events": [
+    {
+      "type": "optical_warning",
+      "severity": "warn",
+      "title": "RX power abaixo do recomendado",
+      "description": "RX caiu de -24 para -28.5 dBm nas últimas 2h"
+    }
+  ]
+}

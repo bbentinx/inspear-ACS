@@ -1,0 +1,59 @@
+# GenieACS — rodar junto: docker compose -f docker-compose.yml -f genieacs/docker-compose.genieacs.yml up -d
+services:
+  genieacs-mongo:
+    image: mongo:6
+    container_name: genieacs-mongo
+    restart: unless-stopped
+    volumes:
+      - genieacs_mongo:/data/db
+
+  genieacs-fs:
+    image: docker.genieacs.com/genieacs-fs:latest
+    container_name: genieacs-fs
+    restart: unless-stopped
+    environment:
+      GENIEACS_MONGODB_CONNECTION_URL: mongodb://genieacs-mongo:27017/genieacs
+    depends_on:
+      - genieacs-mongo
+
+  genieacs-cwmp:
+    image: docker.genieacs.com/genieacs-cwmp:latest
+    container_name: genieacs-cwmp
+    restart: unless-stopped
+    ports:
+      - "7547:7547"
+    environment:
+      GENIEACS_MONGODB_CONNECTION_URL: mongodb://genieacs-mongo:27017/genieacs
+      GENIEACS_CWMP_INTERFACE: 0.0.0.0
+      GENIEACS_CWMP_PORT: 7547
+    depends_on:
+      - genieacs-mongo
+      - genieacs-fs
+
+  genieacs-nbi:
+    image: docker.genieacs.com/genieacs-nbi:latest
+    container_name: genieacs-nbi
+    restart: unless-stopped
+    ports:
+      - "7557:7557"
+    environment:
+      GENIEACS_MONGODB_CONNECTION_URL: mongodb://genieacs-mongo:27017/genieacs
+      GENIEACS_NBI_INTERFACE: 0.0.0.0
+      GENIEACS_NBI_PORT: 7557
+    depends_on:
+      - genieacs-mongo
+
+  genieacs-ui:
+    image: docker.genieacs.com/genieacs-ui:latest
+    container_name: genieacs-ui
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    environment:
+      GENIEACS_MONGODB_CONNECTION_URL: mongodb://genieacs-mongo:27017/genieacs
+      GENIEACS_UI_JWT_SECRET: changeme-genieacs-jwt
+    depends_on:
+      - genieacs-nbi
+
+volumes:
+  genieacs_mongo:

@@ -1,0 +1,9 @@
+.env
+bin/docker-compose
+pgdata/
+*.pyc
+__pycache__/
+node_modules/
+.web/node_modules/
+web/.next/
+examples/speedtest/*.bin
