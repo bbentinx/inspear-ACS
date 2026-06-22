@@ -58,6 +58,7 @@ export interface DeviceSnapshot {
   optical_temperature?: number | null;
   uptime_seconds?: number | null;
   pppoe_status?: string | null;
+  pppoe_username?: string | null;
   ipv4_address?: string | null;
   ipv6_prefix?: string | null;
   ipv6_status?: string | null;

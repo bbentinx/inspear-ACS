@@ -112,5 +112,5 @@ async def genieacs_sync_device(
     if not devices:
         return {"ok": False, "error": "Device não encontrado no GenieACS"}
     inform = genieacs_device_to_inform(devices[0])
-    result = await ingest_inform(db, inform)
+    result = await ingest_inform(db, inform, force_snapshot=True)
     return {"ok": True, **result}

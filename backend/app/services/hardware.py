@@ -124,6 +124,7 @@ async def fetch_hardware_topology(serial: str) -> dict:
     supported = any(m in str(model).upper() for m in SUPPORTED_MODELS)
 
     pppoe_status = _scalar(_get_param(doc, f"{WAN_PPP}.ConnectionStatus"))
+    pppoe_user = _scalar(_get_param(doc, f"{WAN_PPP}.Username"))
     ipv4 = _scalar(_get_param(doc, f"{WAN_PPP}.ExternalIPAddress"))
     vlan = _scalar(_get_param(doc, f"{WAN_PPP}.X_HW_VLAN"))
     rx = _scalar(_get_param(doc, GPON_RX))
@@ -136,6 +137,7 @@ async def fetch_hardware_topology(serial: str) -> dict:
         "internet": {
             "connected": str(pppoe_status).lower() in ("connected", "up"),
             "pppoe_status": pppoe_status,
+            "pppoe_username": pppoe_user,
             "ipv4": ipv4,
             "vlan": vlan,
             "optical_rx_dbm": rx,

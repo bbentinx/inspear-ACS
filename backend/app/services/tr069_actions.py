@@ -14,10 +14,29 @@ from .wan_counters import (
 WLAN_REFRESH_PATHS = [
     "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.TotalAssociations",
     "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.SSID",
+    "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.Channel",
+    "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType",
     "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.AssociatedDevice",
     "InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.TotalAssociations",
     "InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.SSID",
+    "InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.Channel",
+    "InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.BeaconType",
     "InternetGatewayDevice.LANDevice.1.WLANConfiguration.5.AssociatedDevice",
+]
+
+NBI_SYNC_REFRESH_PATHS = WLAN_REFRESH_PATHS + [
+    "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ConnectionStatus",
+    "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.Username",
+    "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ExternalIPAddress",
+    "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.X_HW_VLAN",
+    "InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.RXPower",
+    "InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.TXPower",
+    "InternetGatewayDevice.DeviceInfo.X_HW_CpuUsed",
+    "InternetGatewayDevice.DeviceInfo.X_HW_MemUsed",
+    "InternetGatewayDevice.DownloadDiagnostics.DiagnosticsState",
+    "InternetGatewayDevice.DownloadDiagnostics.TestBytesReceived",
+    "InternetGatewayDevice.UploadDiagnostics.DiagnosticsState",
+    "InternetGatewayDevice.UploadDiagnostics.TotalBytesSent",
 ]
 
 PING_RESULT_PATHS = [

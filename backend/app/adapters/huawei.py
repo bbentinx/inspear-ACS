@@ -34,7 +34,13 @@ class HuaweiAdapter(BaseAdapter):
     def can_handle(self, payload: dict) -> bool:
         mfr = str(payload.get("manufacturer", payload.get("Manufacturer", ""))).lower()
         model = str(payload.get("model", payload.get("ModelName", ""))).lower()
-        return "huawei" in mfr or "hg8245" in model or "x610" in model or payload.get("adapter") == "huawei"
+        return (
+            "huawei" in mfr
+            or "hg8245" in model
+            or "eg8145" in model
+            or "x610" in model
+            or payload.get("adapter") == "huawei"
+        )
 
     def normalize(self, payload: dict) -> NormalizedDeviceState:
         # Suporta payload API simulado ou Inform TR-069 (dict flat ou nested)

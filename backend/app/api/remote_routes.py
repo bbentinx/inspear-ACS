@@ -16,6 +16,7 @@ from ..services.genieacs import genieacs_device_to_inform
 from ..services.ingest import ingest_inform
 from ..services.tr069_actions import (
     SOCIAL_PING_HOSTS,
+    NBI_SYNC_REFRESH_PATHS,
     refresh_wifi_stats,
     update_wifi,
     start_ping_test,
@@ -302,13 +303,8 @@ async def sync_device(
     ga_id = await genieacs_client.resolve_device_id(device.serial_number)
     if ga_id:
         try:
-            await refresh_wifi_stats(device.serial_number)
-            await genieacs_client.get_parameter_values(ga_id, [
-                "InternetGatewayDevice.DeviceInfo.X_HW_CpuUsed",
-                "InternetGatewayDevice.DeviceInfo.X_HW_MemUsed",
-                "InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.RXPower",
-                "InternetGatewayDevice.WANDevice.1.WANConnectionDevice.1.WANPPPConnection.1.ConnectionStatus",
-            ])
+            await genieacs_client.get_parameter_values(ga_id, NBI_SYNC_REFRESH_PATHS)
+            await genieacs_client.connection_request(device.serial_number)
         except Exception:
             pass
 
@@ -327,7 +323,7 @@ async def sync_device(
         )
 
     inform = genieacs_device_to_inform(ga_doc)
-    result = await ingest_inform(db, inform)
+    result = await ingest_inform(db, inform, force_snapshot=True)
     await _log_action(db, device, "sync", user, result)
     return ActionResponse(
         ok=True, action="sync", device_serial=device.serial_number,
@@ -350,7 +346,7 @@ async def sync_all_devices(
     for ga_doc in devices:
         try:
             inform = genieacs_device_to_inform(ga_doc)
-            await ingest_inform(db, inform)
+            await ingest_inform(db, inform, force_snapshot=True)
             synced += 1
         except Exception as e:
             errors.append(f"{ga_doc.get('_id')}: {e}")

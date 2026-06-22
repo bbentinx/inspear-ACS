@@ -40,7 +40,7 @@ async def sync_from_genieacs() -> dict:
                 if inform.serial_number in ("unknown", "") or inform.serial_number.startswith("TEST"):
                     continue
                 seen_serials.add(inform.serial_number)
-                await ingest_inform(db, inform)
+                await ingest_inform(db, inform, force_snapshot=True)
                 synced += 1
             except Exception as e:
                 errors += 1

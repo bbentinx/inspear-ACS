@@ -43,7 +43,12 @@ async def _get_aggregation_context(db: AsyncSession, device: Device) -> dict:
     return ctx
 
 
-async def ingest_inform(db: AsyncSession, payload: DeviceInformPayload) -> dict:
+async def ingest_inform(
+    db: AsyncSession,
+    payload: DeviceInformPayload,
+    *,
+    force_snapshot: bool = False,
+) -> dict:
     raw = payload.model_dump(mode="json")
     adapter = get_adapter(raw)
     state = normalize_payload(raw)
@@ -75,8 +80,9 @@ async def ingest_inform(db: AsyncSession, payload: DeviceInformPayload) -> dict:
         device.mgmt_ip = state.mgmt_ip
         device.last_inform_at = inform_time
 
-    # Offline — só atualiza status; não grava snapshot/diagnóstico com dados velhos
-    if not state.is_online:
+    # Offline — por padrão não grava snapshot (evita dados velhos do webhook).
+    # Pull manual do GenieACS NBI (sync) usa force_snapshot=True.
+    if not state.is_online and not force_snapshot:
         device.health_status = "offline"
         device.health_score = min(device.health_score or 0, 15)
         return {

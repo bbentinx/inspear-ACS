@@ -186,9 +186,26 @@ export function DeviceDetailView({ id }: { id: string }) {
                 <StatusBadge status={snapshot?.pppoe_status === "connected" ? "connected" : "crit"} />
               </div>
               <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
-                <p className="text-xs text-muted-foreground">PPPoE</p>
-                <p className="font-mono text-sm mt-0.5">{device.customer?.pppoe_login || "—"}</p>
+                <p className="text-xs text-muted-foreground">PPPoE (ONT)</p>
+                <p className="font-mono text-sm mt-0.5">{snapshot?.pppoe_username || device.customer?.pppoe_login || "—"}</p>
               </div>
+              {snapshot?.wifi_networks?.length ? (
+                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                  <p className="text-xs text-muted-foreground">Redes Wi-Fi</p>
+                  <div className="mt-1 space-y-1">
+                    {snapshot.wifi_networks.map((n) => (
+                      <p key={n.index} className="font-mono text-sm">
+                        {n.ssid} <span className="text-xs text-muted-foreground">({n.band})</span>
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ) : snapshot?.wifi_ssid ? (
+                <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
+                  <p className="text-xs text-muted-foreground">Wi-Fi</p>
+                  <p className="font-mono text-sm mt-0.5">{snapshot.wifi_ssid}</p>
+                </div>
+              ) : null}
               <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-3">
                 <p className="text-xs text-muted-foreground">IPv6</p>
                 <p className="text-sm mt-0.5">{snapshot?.ipv6_prefix || "Desabilitado"}</p>

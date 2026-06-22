@@ -250,7 +250,12 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
               </p>
             )}
           </div>
-          <button onClick={runSpeedSuite} disabled={!!loading || !isOnline} className="stitch-btn shrink-0">
+          <button
+            onClick={runSpeedSuite}
+            disabled={!!loading}
+            title={!isOnline ? "ONT offline — teste entra na fila e roda no próximo Inform" : undefined}
+            className="stitch-btn shrink-0"
+          >
             {loading === "suite" ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
             Iniciar teste
           </button>

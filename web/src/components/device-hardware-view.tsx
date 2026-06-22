@@ -23,7 +23,7 @@ interface PortForward {
 }
 interface HardwareData {
   supported: boolean; model: string; device_online?: boolean;
-  internet: { connected: boolean; ipv4?: string; vlan?: number; optical_rx_dbm?: number; pppoe_status?: string };
+  internet: { connected: boolean; ipv4?: string; vlan?: number; optical_rx_dbm?: number; pppoe_status?: string; pppoe_username?: string };
   wifi: WifiNet[];
   wifi_clients: Array<{ mac: string; name?: string; ssid?: string; ip?: string; rssi?: number }>;
   wifi_clients_count: number;
@@ -455,6 +455,7 @@ export function DeviceHardwareView({ deviceId, isOnline, snapshot }: Props) {
           <dl className="space-y-2 text-sm">
             {([
               ["PPPoE", hw?.internet?.pppoe_status ?? "—", internetOk],
+              ["Login PPPoE", hw?.internet?.pppoe_username ?? snapshot?.pppoe_username ?? "—", internetOk],
               ["IP público", hw?.internet?.ipv4 ?? "—", true],
               ["VLAN WAN", String(hw?.internet?.vlan ?? 10), true],
               ["RX óptico", `${hw?.internet?.optical_rx_dbm ?? "—"} dBm`, true],
