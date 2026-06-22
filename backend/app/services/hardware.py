@@ -90,10 +90,19 @@ def _port_forwards_from_doc(doc: dict) -> list[dict]:
 
 async def fetch_hardware_topology(serial: str) -> dict:
     """Estado visual da ONT — WAN, Wi-Fi, LAN, redirecionamentos."""
-    try:
-        await genieacs_client.refresh_object(serial, PORT_MAPPING_BASE + ".")
-    except Exception:
-        pass
+    doc_peek = await genieacs_client.get_device_by_serial(serial)
+    model_peek = ""
+    if doc_peek:
+        did = doc_peek.get("_deviceId") or {}
+        model_peek = str(did.get("_ProductClass") or _get_param(
+            doc_peek, "InternetGatewayDevice.DeviceInfo.ModelName"
+        ) or "").upper()
+    # Realtek IGD não expõe PortMapping TR-069 — refresh gera fault no GenieACS
+    if model_peek != "IGD":
+        try:
+            await genieacs_client.refresh_object(serial, PORT_MAPPING_BASE + ".")
+        except Exception:
+            pass
     try:
         await genieacs_client.get_parameter_values(serial, [
             f"{WAN_PPP}.ConnectionStatus",

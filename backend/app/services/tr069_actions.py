@@ -90,6 +90,30 @@ def _wlan_base(index: int) -> str:
     return f"InternetGatewayDevice.LANDevice.1.WLANConfiguration.{index}"
 
 
+def _vendor_from_doc(doc: dict | None) -> str:
+    if not doc:
+        return "generic"
+    did = doc.get("_deviceId") or {}
+    mfr = str(did.get("_Manufacturer", "")).lower()
+    model = str(did.get("_ProductClass") or _scalar(_get_param_from_doc(
+        doc, "InternetGatewayDevice.DeviceInfo.ModelName"
+    )) or "").lower()
+    if "realtek" in mfr or model == "igd":
+        return "realtek"
+    if "huawei" in mfr or "eg8145" in model or "hg8245" in model:
+        return "huawei"
+    return "generic"
+
+
+def _get_param_from_doc(doc: dict, path: str) -> Any:
+    cur: Any = doc
+    for part in path.split("."):
+        if not isinstance(cur, dict) or part not in cur:
+            return None
+        cur = cur[part]
+    return _scalar(cur)
+
+
 async def refresh_wifi_stats(serial: str) -> dict:
     await genieacs_client.get_parameter_values(serial, WLAN_REFRESH_PATHS + [
         "InternetGatewayDevice.LANDevice.1.WLANConfiguration.1.BeaconType",
@@ -109,24 +133,38 @@ async def update_wifi(
     password: Optional[str] = None,
     open_network: bool = False,
 ) -> dict:
+    doc = await genieacs_client.get_device_by_serial(serial)
+    vendor = _vendor_from_doc(doc)
+
     params: list[tuple[str, Any, str]] = []
     base = _wlan_base(wlan_index)
     params.append((f"{base}.Enable", True, "xsd:boolean"))
     if ssid is not None and ssid != "":
         params.append((f"{base}.SSID", ssid, "xsd:string"))
     if open_network:
-        # EG8145V5: BeaconType=Basic; NÃO usar WPAEncryptionModes=None (9007 Invalid value)
-        params.extend([
-            (f"{base}.BeaconType", "Basic", "xsd:string"),
-            (f"{base}.BasicAuthenticationMode", "None", "xsd:string"),
-            (f"{base}.BasicEncryptionModes", "None", "xsd:string"),
-            (f"{base}.KeyPassphrase", "", "xsd:string"),
-            (f"{base}.PreSharedKey.1.KeyPassphrase", "", "xsd:string"),
-        ])
+        if vendor == "realtek":
+            # Realtek IGD V2.0.03 — BasicAuthenticationMode Both (não None)
+            params.extend([
+                (f"{base}.BeaconType", "Basic", "xsd:string"),
+                (f"{base}.BasicAuthenticationMode", "Both", "xsd:string"),
+                (f"{base}.BasicEncryptionModes", "None", "xsd:string"),
+                (f"{base}.KeyPassphrase", "", "xsd:string"),
+                (f"{base}.PreSharedKey.1.KeyPassphrase", "", "xsd:string"),
+            ])
+        else:
+            # Huawei EG8145V5 — não usar WPAEncryptionModes=None (9007)
+            params.extend([
+                (f"{base}.BeaconType", "Basic", "xsd:string"),
+                (f"{base}.BasicAuthenticationMode", "None", "xsd:string"),
+                (f"{base}.BasicEncryptionModes", "None", "xsd:string"),
+                (f"{base}.KeyPassphrase", "", "xsd:string"),
+                (f"{base}.PreSharedKey.1.KeyPassphrase", "", "xsd:string"),
+            ])
     elif password is not None and password != "":
+        wpa_mode = "TKIPEncryption" if vendor == "realtek" else "TKIPandAESEncryption"
         params.extend([
             (f"{base}.BeaconType", "WPAand11i", "xsd:string"),
-            (f"{base}.WPAEncryptionModes", "TKIPandAESEncryption", "xsd:string"),
+            (f"{base}.WPAEncryptionModes", wpa_mode, "xsd:string"),
             (f"{base}.BasicEncryptionModes", "None", "xsd:string"),
             (f"{base}.KeyPassphrase", password, "xsd:string"),
             (f"{base}.PreSharedKey.1.KeyPassphrase", password, "xsd:string"),
@@ -134,13 +172,17 @@ async def update_wifi(
     if len(params) <= 1:
         return {"status": "noop", "message": "Informe SSID, senha ou marque rede aberta"}
     task = await genieacs_client.set_parameter_values(serial, params)
+    cr_ok = True
     try:
         await genieacs_client.connection_request(serial)
     except Exception:
-        pass
+        cr_ok = False
     label = ssid or f"WLAN {wlan_index}"
     mode = "aberta" if open_network else "com senha" if password else "SSID"
-    return {"status": "ok", "task": task, "message": f"Wi-Fi aplicado ({mode}): {label}"}
+    msg = f"Wi-Fi enfileirado ({mode}): {label}"
+    if not cr_ok:
+        msg += " — Connection Request indisponível; confira CR user/senha na ONT (aplica no próximo Inform)"
+    return {"status": "ok", "task": task, "connection_request": cr_ok, "message": msg}
 
 
 async def start_ping_test(serial: str, host: str, count: int = 4) -> dict:

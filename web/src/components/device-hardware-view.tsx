@@ -140,7 +140,9 @@ export function DeviceHardwareView({ deviceId, isOnline, snapshot }: Props) {
         type: ok ? "ok" : "err",
         text: ok
           ? (expectOpen ? "Rede aberta confirmada na ONT" : "Wi-Fi atualizado na ONT")
-          : "Comando enviado — ONT offline ou aguardando próximo Inform (30s)",
+          : isOnline
+            ? "Comando na fila do ACS — aguardando Inform (~30s a 5min). Se demorar, verifique Connection Request (inspear-cr) na ONT"
+            : "Comando enviado — ONT offline; aplica no próximo Inform (~30s)",
       });
     } catch (e) {
       setStatus({ type: "err", text: e instanceof Error ? e.message : "Erro Wi-Fi" });
