@@ -38,7 +38,7 @@ Sync, connection request, reboot, firmware, speed test, ping e restore automáti
 
 Comandos enviados com ONT offline ficam na fila do GenieACS e aplicam no próximo Inform (~30s).
 
-Documentação detalhada: [docs/equipamento.md](docs/equipamento.md) · [docs/diagnosticos.md](docs/diagnosticos.md)
+Documentação detalhada: [docs/equipamento.md](docs/equipamento.md) · [docs/diagnosticos.md](docs/diagnosticos.md) · [docs/tr069-config.md](docs/tr069-config.md)
 
 ---
 
@@ -78,6 +78,23 @@ make status       # URLs e health
 ```bash
 make up-core      # sobe só postgres + redis + api + worker
 make dev-web      # painel local (npm run dev na porta 3000)
+```
+
+## Configurar TR-069 na ONT
+
+Na ONT Huawei (**System Management → TR-069**), aponte para o GenieACS:
+
+| Campo | Valor |
+|-------|-------|
+| ACS URL | `http://SEU_IP_SERVIDOR:7547` |
+| ACS User / Password | `inspear` / `inspear123` |
+| Connection Request User / Password | `inspear-cr` / `inspear123` |
+| Periodic Inform | ✓ — intervalo `300` (ou `30` em lab) |
+
+Guia completo e valores dinâmicos do `.env`: **[docs/tr069-config.md](docs/tr069-config.md)** · painel **ACS** no Inspear.
+
+```bash
+make setup-genieacs   # aplica cwmp.auth e imprime a tabela na ONT
 ```
 
 ## GenieACS (opcional)

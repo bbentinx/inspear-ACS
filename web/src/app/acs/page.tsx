@@ -1,10 +1,13 @@
 import { PageContainer } from "@/components/page-container";
 import { StitchTopBar } from "@/components/stitch/top-bar";
+import { Tr069ConfigPanel } from "@/components/tr069-config-panel";
 
 export default function ACSPage() {
   return (
     <PageContainer className="space-y-5">
       <StitchTopBar breadcrumb={[{ label: "Início", href: "/" }, { label: "ACS" }]} title="ACS / TR-069 — GenieACS" />
+
+      <Tr069ConfigPanel />
 
       <div className="grid w-full grid-cols-1 gap-4 lg:grid-cols-2">
         <section className="stitch-card min-w-0 border-emerald-500/20 p-6">
@@ -51,6 +54,7 @@ export default function ACSPage() {
         <h2 className="mb-3 font-semibold">Endpoints</h2>
         <div className="space-y-3 font-mono text-xs">
           {[
+            ["GET", "/api/v1/devices/tr069-config", "— JWT, valores ONT"],
             ["POST", "/api/v1/acs/inform", "— X-API-Key"],
             ["POST", "/api/v1/acs/genieacs/webhook", "— GenieACS provision"],
             ["POST", "/api/v1/acs/genieacs/sync/{serial}", "— pull NBI"],

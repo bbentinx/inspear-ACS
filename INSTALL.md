@@ -84,6 +84,8 @@ sudo ufw allow 3000/tcp 8000/tcp 7547/tcp 7557/tcp 3001/tcp
 
 ## Configurar ONT Huawei (TR-069)
 
+Guia detalhado: [docs/tr069-config.md](docs/tr069-config.md) · painel Inspear → **ACS**.
+
 Na ONT, preencha:
 
 | Campo | Valor |

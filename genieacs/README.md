@@ -20,6 +20,8 @@ make setup-genieacs && make seed && make test
 
 ## Configurar ONT Huawei (EG8145V5 / X610)
 
+Guia completo: [docs/tr069-config.md](../docs/tr069-config.md) · API `GET /api/v1/devices/tr069-config` · painel **ACS**.
+
 Na ONT — **System Management → TR-069** (todos os campos * são obrigatórios):
 
 | Campo | Valor |

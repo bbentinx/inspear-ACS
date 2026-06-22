@@ -26,6 +26,7 @@ from ..services.tr069_actions import (
 )
 from ..services.wan_counters import read_wan_counters, sample_wan_throughput
 from ..services.speed_test import speed_test_config
+from ..services.tr069_config import tr069_ont_config
 from ..services.hardware import (
     fetch_hardware_topology,
     add_port_forward,
@@ -674,6 +675,11 @@ async def ping_test(
 @router.get("/speed-test/config")
 async def get_speed_test_config(user: User = Depends(get_current_user)):
     return speed_test_config()
+
+
+@router.get("/tr069-config")
+async def get_tr069_config(user: User = Depends(get_current_user)):
+    return tr069_ont_config()
 
 
 @router.post("/{device_id}/actions/speed-test", response_model=ActionResponse)
