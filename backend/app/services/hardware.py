@@ -15,7 +15,7 @@ WAN_PPP = (
 )
 GPON_RX = "InternetGatewayDevice.WANDevice.1.X_GponInterafceConfig.RXPower"
 
-SUPPORTED_MODELS = ("EG8145V5", "EG8145X5", "HG8245")
+SUPPORTED_MODELS = ("EG8145V5", "EG8145X5", "HG8245", "IGD")
 
 
 def _scalar(val: Any) -> Any:
@@ -130,10 +130,12 @@ async def fetch_hardware_topology(serial: str) -> dict:
     rx = _scalar(_get_param(doc, GPON_RX))
     wifi = extract_wifi_stats(doc)
 
+    mfr = device_id.get("_Manufacturer") or ("Realtek" if "IGD" in str(model).upper() else "Huawei")
+
     return {
         "supported": supported,
         "model": str(model),
-        "manufacturer": device_id.get("_Manufacturer") or "Huawei",
+        "manufacturer": mfr,
         "internet": {
             "connected": str(pppoe_status).lower() in ("connected", "up"),
             "pppoe_status": pppoe_status,

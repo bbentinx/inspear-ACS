@@ -22,7 +22,7 @@ interface PortForward {
   internal_client: string; protocol: string; description?: string;
 }
 interface HardwareData {
-  supported: boolean; model: string; device_online?: boolean;
+  supported: boolean; model: string; manufacturer?: string; device_online?: boolean;
   internet: { connected: boolean; ipv4?: string; vlan?: number; optical_rx_dbm?: number; pppoe_status?: string; pppoe_username?: string };
   wifi: WifiNet[];
   wifi_clients: Array<{ mac: string; name?: string; ssid?: string; ip?: string; rssi?: number }>;
@@ -335,7 +335,7 @@ export function DeviceHardwareView({ deviceId, isOnline, snapshot }: Props) {
         <div className="relative mb-4 flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base font-semibold tracking-tight">Topologia EG8145V5</h2>
+              <h2 className="text-base font-semibold tracking-tight">Topologia {hw?.model ?? "ONT"}</h2>
               <span className={cn(
                 "rounded-full px-2 py-0.5 text-[10px] font-medium",
                 online ? "bg-emerald-500/15 text-emerald-300" : "bg-amber-500/15 text-amber-300",
@@ -381,8 +381,8 @@ export function DeviceHardwareView({ deviceId, isOnline, snapshot }: Props) {
           {/* ONT central */}
           <g className="cursor-pointer" onClick={() => setZone("internet")} role="button" tabIndex={0}>
             <rect x={CX - 88} y={CY - 36} width={176} height={72} rx={16} fill="url(#ontBody)" filter="url(#ontShadow)" />
-            <text x={CX} y={CY - 8} textAnchor="middle" fill="white" fontSize="13" fontWeight="700">EG8145V5</text>
-            <text x={CX} y={CY + 8} textAnchor="middle" fill="rgba(255,255,255,0.65)" fontSize="8">Huawei GPON</text>
+            <text x={CX} y={CY - 8} textAnchor="middle" fill="white" fontSize="13" fontWeight="700">{hw?.model ?? "ONT"}</text>
+            <text x={CX} y={CY + 8} textAnchor="middle" fill="rgba(255,255,255,0.65)" fontSize="8">{hw?.manufacturer ?? "CPE"}</text>
           </g>
 
           {/* Portas LAN — chips compactos abaixo da ONT */}
@@ -471,8 +471,8 @@ export function DeviceHardwareView({ deviceId, isOnline, snapshot }: Props) {
         {zone === "wifi" && (
           <div className="space-y-3">
             <div className="flex gap-2">
-              {([1, 5] as const).map((idx) => {
-                const net = hw?.wifi.find((w) => w.index === idx);
+              {(hw?.wifi?.length ? hw.wifi : [{ index: 1, ssid: "", band: "2.4G" }, { index: 5, ssid: "", band: "5G" }]).map((net) => {
+                const idx = net.index;
                 return (
                   <button
                     key={idx}
@@ -492,7 +492,7 @@ export function DeviceHardwareView({ deviceId, isOnline, snapshot }: Props) {
                     )}
                   >
                     <span className="flex items-center gap-1.5 font-semibold">
-                      {idx === 1 ? "2.4 GHz" : "5 GHz"}
+                      {net.band || (idx === 1 ? "2.4 GHz" : "5 GHz")}
                       {net?.open ? <LockOpen className="h-3 w-3 text-emerald-400" /> : <Lock className="h-3 w-3 text-amber-400" />}
                     </span>
                     <span className="mt-1 block font-mono text-[10px] opacity-80">{net?.ssid ?? "—"}</span>

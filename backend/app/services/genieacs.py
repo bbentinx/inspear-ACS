@@ -26,6 +26,28 @@ GENIEACS_PARAM_MAP = {
 }
 
 
+def _wlan_band(idx: int, band_raw: Any, channel: int | None, ssid: Any) -> str:
+    """Detecta 2.4G/5G — Huawei, Realtek IGD e similares."""
+    if band_raw and not isinstance(band_raw, dict):
+        b = str(band_raw).upper()
+        if "5" in b and "2" not in b.replace("5", "", 1):
+            return "5G"
+        if "2" in b or "2.4" in b:
+            return "2.4G"
+    if channel is not None:
+        if channel >= 36:
+            return "5G"
+        if 1 <= channel <= 14:
+            return "2.4G"
+    if ssid:
+        s = str(ssid).lower()
+        if "5g" in s or "_5g" in s or "-5g" in s:
+            return "5G"
+        if "2.4" in s or "2g" in s:
+            return "2.4G"
+    return "5G" if idx >= 5 else "2.4G"
+
+
 def _unwrap(val: Any) -> Any:
     if isinstance(val, dict) and "_value" in val:
         return val["_value"]
@@ -62,10 +84,10 @@ def extract_wifi_stats(device: dict) -> dict:
         assoc = _unwrap(cfg.get("TotalAssociations"))
         count = int(assoc) if assoc is not None else 0
         total += count
-        band_raw = _unwrap(cfg.get("X_HW_RFBand"))
-        band = str(band_raw) if band_raw and not isinstance(band_raw, dict) else ("5G" if idx >= 5 else "2.4G")
+        band_raw = _unwrap(cfg.get("X_HW_RFBand")) or _unwrap(cfg.get("X_CT-COM_RFBand"))
         channel_raw = _unwrap(cfg.get("Channel"))
         channel = _int(channel_raw)
+        band = _wlan_band(idx, band_raw, channel, ssid)
         enabled = _unwrap(cfg.get("Enable"))
         beacon = _unwrap(cfg.get("BeaconType"))
         beacon_str = str(beacon) if beacon else ""
@@ -156,8 +178,13 @@ def genieacs_device_to_inform(device: dict) -> DeviceInformPayload:
     manufacturer = flat.get("manufacturer") or device_id.get("_Manufacturer") or "Huawei"
     if not flat.get("model"):
         flat["model"] = device_id.get("_ProductClass")
-    if manufacturer and "huawei" in str(manufacturer).lower():
+    mfr_l = str(manufacturer).lower()
+    model_l = str(flat.get("model") or "").lower()
+    fw_l = str(flat.get("firmware") or "").lower()
+    if "huawei" in mfr_l:
         flat["adapter"] = "huawei"
+    elif "realtek" in mfr_l or model_l == "igd" or "v2.0.03" in fw_l:
+        flat["adapter"] = "realtek"
 
     pppoe_raw = flat.get("pppoe_status")
     if pppoe_raw:

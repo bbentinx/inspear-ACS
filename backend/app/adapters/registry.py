@@ -1,6 +1,7 @@
 """Registry de adapters — seleciona o adapter correto por fabricante."""
 
 from .huawei import HuaweiAdapter
+from .realtek import RealtekAdapter
 from .zte import ZTEAdapter
 from .fiberhome import FiberHomeAdapter
 from .generic import GenericTR069Adapter
@@ -8,6 +9,7 @@ from .base import BaseAdapter, NormalizedDeviceState
 
 ADAPTERS: list[BaseAdapter] = [
     HuaweiAdapter(),
+    RealtekAdapter(),
     ZTEAdapter(),
     FiberHomeAdapter(),
     GenericTR069Adapter(),

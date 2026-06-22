@@ -22,6 +22,13 @@ Visão interativa da ONT Huawei EG8145V5 no painel Inspear: topologia de rede, p
 
 ## Homologação
 
-ONT de referência para testes TR-069: **Huawei EG8145V5**.
+ONTs homologadas:
+
+| Modelo | Firmware | Fabricante |
+|--------|----------|------------|
+| **EG8145V5** | V5R019C00S100 | Huawei |
+| **IGD** | V2.0.03-190815 | Realtek |
+
+A Realtek IGD usa os mesmos índices TR-069 (`WLANConfiguration.1` e `.5`, `WANPPPConnection.1`). A banda Wi-Fi é detectada pelo canal/SSID, não só pelo índice.
 
 Ver também: [Diagnósticos e restore remoto](diagnosticos.md).

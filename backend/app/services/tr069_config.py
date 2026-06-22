@@ -8,7 +8,7 @@ def tr069_ont_config() -> dict:
     cwmp = settings.genieacs_cwmp_url.rstrip("/")
     return {
         "manufacturer": "Huawei",
-        "models": ["EG8145V5", "EG8145X5", "HG8245"],
+        "models": ["EG8145V5", "EG8145X5", "HG8245", "IGD (Realtek V2.0.03)"],
         "menu_path": "System Management → TR-069",
         "acs": {
             "url": cwmp,
