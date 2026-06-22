@@ -70,7 +70,15 @@ export interface DeviceSnapshot {
   wifi_clients_count?: number | null;
   wifi_signal_avg?: number | null;
   wifi_networks?: { index: number; ssid: string; band: string; clients: number; channel?: number | null }[];
-  wifi_clients?: { mac: string; rssi?: number | null; wlan_index: number; ssid?: string | null; name?: string | null; ip?: string | null }[];
+  wifi_clients?: {
+    mac?: string | null;
+    rssi?: number | null;
+    wlan_index: number;
+    ssid?: string | null;
+    name?: string | null;
+    ip?: string | null;
+    detail_unavailable?: boolean;
+  }[];
   cpu_usage?: number | null;
   memory_usage?: number | null;
   reboot_count_24h?: number | null;

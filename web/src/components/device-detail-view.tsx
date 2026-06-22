@@ -62,7 +62,21 @@ export function DeviceDetailView({ id }: { id: string }) {
       ? new Date(device.last_inform_at).toLocaleString("pt-BR")
       : null;
   const wifiClients = snapshot?.wifi_clients ?? [];
-  const connectedCount = Math.max(snapshot?.wifi_clients_count ?? 0, wifiClients.length);
+  const networkPlaceholders = (snapshot?.wifi_networks ?? [])
+    .filter((n) => n.clients > 0)
+    .flatMap((n) =>
+      Array.from({ length: n.clients }, (_, i) => ({
+        wlan_index: n.index,
+        ssid: n.ssid,
+        name: `Cliente ${i + 1}`,
+        mac: null as string | null,
+        rssi: null as number | null,
+        ip: null as string | null,
+        detail_unavailable: true,
+      })),
+    );
+  const displayClients = wifiClients.length > 0 ? wifiClients : networkPlaceholders;
+  const connectedCount = Math.max(snapshot?.wifi_clients_count ?? 0, displayClients.length);
   const teamLabel: Record<string, string> = { field: "Campo", noc: "NOC", support: "Suporte", upstream: "Upstream" };
 
   const tabs: { id: Tab; label: string }[] = [
@@ -284,13 +298,15 @@ export function DeviceDetailView({ id }: { id: string }) {
               </p>
             ) : (
               <div className="mt-4 space-y-2">
-                {wifiClients.map((c) => (
-                  <div key={`${c.mac}-${c.wlan_index}`} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+                {displayClients.map((c, i) => (
+                  <div key={`${c.mac ?? "anon"}-${c.wlan_index}-${i}`} className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
                     <div className="flex items-center gap-2">
                       <Smartphone className="h-4 w-4 shrink-0 text-violet-300" />
                       <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium">{c.name || c.mac}</p>
-                        <p className="font-mono text-[10px] text-muted-foreground">{c.mac}</p>
+                        <p className="truncate text-sm font-medium">{c.name || c.mac || "Dispositivo Wi-Fi"}</p>
+                        <p className="font-mono text-[10px] text-muted-foreground">
+                          {c.mac ?? (c.detail_unavailable ? "MAC não reportado pela ONT" : "—")}
+                        </p>
                       </div>
                       {c.rssi != null && (
                         <span className="shrink-0 text-xs font-mono text-emerald-300">{c.rssi} dBm</span>
@@ -298,6 +314,7 @@ export function DeviceDetailView({ id }: { id: string }) {
                     </div>
                     <p className="mt-1 text-[10px] text-muted-foreground">
                       {c.ssid ?? "Wi-Fi"}{c.ip ? ` · ${c.ip}` : ""}
+                      {c.detail_unavailable && !c.mac ? " · firmware sem lista de associados TR-069" : ""}
                     </p>
                   </div>
                 ))}

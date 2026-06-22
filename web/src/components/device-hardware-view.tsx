@@ -25,7 +25,7 @@ interface HardwareData {
   supported: boolean; model: string; manufacturer?: string; device_online?: boolean;
   internet: { connected: boolean; ipv4?: string; vlan?: number; optical_rx_dbm?: number; pppoe_status?: string; pppoe_username?: string };
   wifi: WifiNet[];
-  wifi_clients: Array<{ mac: string; name?: string; ssid?: string; ip?: string; rssi?: number }>;
+  wifi_clients: Array<{ mac?: string | null; name?: string; ssid?: string; ip?: string; rssi?: number; detail_unavailable?: boolean }>;
   wifi_clients_count: number;
   lan_ports: LanPort[];
   port_forwards: PortForward[];
@@ -604,16 +604,25 @@ export function DeviceHardwareView({ deviceId, isOnline, snapshot }: Props) {
 
         {zone === "clients" && (
           <div className="max-h-72 space-y-2 overflow-y-auto">
-            {(hw?.wifi_clients?.length ?? 0) > 0 ? hw?.wifi_clients.map((c) => (
-              <div key={c.mac} className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
+            {(hw?.wifi_clients?.length ?? 0) > 0 ? hw?.wifi_clients.map((c, i) => (
+              <div key={`${c.mac ?? "anon"}-${i}`} className="flex items-center gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5">
                 <Smartphone className="h-4 w-4 text-violet-300" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium">{c.name || c.mac}</p>
-                  <p className="text-[10px] text-muted-foreground">{c.ssid}{c.ip ? ` · ${c.ip}` : ""}</p>
+                  <p className="truncate text-sm font-medium">{c.name || c.mac || "Dispositivo Wi-Fi"}</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {c.mac ?? (c.detail_unavailable ? "MAC não reportado pela ONT" : "—")}
+                    {c.ssid ? ` · ${c.ssid}` : ""}{c.ip ? ` · ${c.ip}` : ""}
+                  </p>
                 </div>
                 {c.rssi != null && <span className="font-mono text-xs text-emerald-300">{c.rssi} dBm</span>}
               </div>
-            )) : <p className="text-sm text-muted-foreground">Nenhum cliente Wi-Fi conectado</p>}
+            )) : (hw?.wifi_clients_count ?? 0) > 0 ? (
+              <p className="text-sm text-muted-foreground">
+                {hw?.wifi_clients_count} cliente(s) na ONT — detalhes não expostos nesta firmware (Realtek IGD).
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">Nenhum cliente Wi-Fi conectado</p>
+            )}
           </div>
         )}
 

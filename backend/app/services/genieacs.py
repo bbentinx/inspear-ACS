@@ -132,6 +132,21 @@ def extract_wifi_stats(device: dict) -> dict:
     if primary_ssid is None and networks:
         primary_ssid = networks[0]["ssid"]
 
+    # Algumas ONTs (ex. Realtek IGD V2.0.03) reportam TotalAssociations sem AssociatedDevice.*
+    if total > 0 and not clients:
+        for net in networks:
+            n = int(net.get("clients") or 0)
+            for i in range(n):
+                clients.append({
+                    "mac": None,
+                    "rssi": None,
+                    "wlan_index": net["index"],
+                    "ssid": net["ssid"],
+                    "name": f"Cliente {i + 1}",
+                    "ip": None,
+                    "detail_unavailable": True,
+                })
+
     return {
         "wifi_clients_count": total,
         "wifi_networks": networks,
