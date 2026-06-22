@@ -22,6 +22,9 @@ interface PingRow {
   avgMs?: number;
   minMs?: number;
   maxMs?: number;
+  successCount?: number;
+  failureCount?: number;
+  okWithoutLatency?: boolean;
 }
 
 interface SpeedTestConfig {
@@ -93,6 +96,7 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
   const [pings, setPings] = useState<PingRow[]>([]);
   const [traceHost, setTraceHost] = useState("instagram");
   const [traceResult, setTraceResult] = useState<Record<string, unknown> | null>(null);
+  const [traceError, setTraceError] = useState<string | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
   const [wlanIndex, setWlanIndex] = useState(1);
   const [ssid, setSsid] = useState("");
@@ -118,7 +122,7 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
       : (payload.tr069_mbps ?? payload.upload_mbps ?? null);
     const wan = (direction === "download" ? payload.wan_download_mbps : payload.wan_upload_mbps) ?? null;
     const hasValue = tr069 != null || wan != null;
-    const completed = payload.state === "Completed" || hasValue;
+    const completed = payload.state === "Completed" || payload.state === "Complete" || hasValue;
     if (!completed && tr069 == null && wan == null) return;
 
     const metrics: SpeedMetrics = {
@@ -156,23 +160,35 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
       const ul = await fetchAuthAPI<{ upload_mbps?: number; tr069_mbps?: number; bytes_mb?: number; wan_upload_mbps?: number; wan_bytes_mb?: number; state?: string }>(`/devices/${deviceId}/diagnostics/upload`);
       const ping = await fetchAuthAPI<{ results: Record<string, unknown> }>(`/devices/${deviceId}/diagnostics/ping`);
 
+      const dlErr = (dl as { error?: string }).error;
+      const ulErr = (ul as { error?: string }).error;
       if (dl.state === "Completed" || dl.download_mbps != null || dl.wan_download_mbps != null) {
         applySpeedPayload(dl, "download");
+      } else if (dlErr) {
+        setMsg(`Download: ${dlErr} — confira SPEED_TEST_DOWNLOAD_URL no .env (IP alcançável pela ONT)`);
       }
       if (ul.state === "Completed" || ul.upload_mbps != null || ul.wan_upload_mbps != null) {
         applySpeedPayload(ul, "upload");
+      } else if (ulErr && !dlErr) {
+        setMsg(`Upload: ${ulErr}`);
       }
 
-      const r = ping.results;
-      if (r.AverageResponseTime != null && r.Host) {
+      const pr = ping as { results: Record<string, unknown>; success_count?: number; ping_ok_without_latency?: boolean };
+      const r = pr.results;
+      if (r.Host) {
         const preset = hostToPreset(String(r.Host));
         if (preset) {
+          const success = pr.success_count ?? (r.SuccessCount != null ? Number(r.SuccessCount) : undefined);
+          const avg = r.AverageResponseTime != null ? Number(r.AverageResponseTime) : undefined;
           upsertPingRow({
             preset: preset.id,
             label: preset.label,
-            avgMs: Number(r.AverageResponseTime),
+            avgMs: avg && avg > 0 ? avg : undefined,
             minMs: r.MinimumResponseTime != null ? Number(r.MinimumResponseTime) : undefined,
             maxMs: r.MaximumResponseTime != null ? Number(r.MaximumResponseTime) : undefined,
+            successCount: success,
+            failureCount: r.FailureCount != null ? Number(r.FailureCount) : undefined,
+            okWithoutLatency: pr.ping_ok_without_latency || (success != null && success > 0 && (!avg || avg <= 0)),
           });
         }
       }
@@ -190,13 +206,22 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
     try {
       await fetchAuthAPI(`/devices/${deviceId}/actions/ping-test`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ preset, count: 4 }) });
       await new Promise((r) => setTimeout(r, 8000));
-      const data = await fetchAuthAPI<{ results: Record<string, unknown> }>(`/devices/${deviceId}/diagnostics/ping`);
+      const data = await fetchAuthAPI<{
+        results: Record<string, unknown>;
+        success_count?: number;
+        ping_ok_without_latency?: boolean;
+      }>(`/devices/${deviceId}/diagnostics/ping`);
       const r = data.results;
+      const success = data.success_count ?? (r.SuccessCount != null ? Number(r.SuccessCount) : undefined);
+      const avg = r.AverageResponseTime != null ? Number(r.AverageResponseTime) : undefined;
       upsertPingRow({
         preset, label,
-        avgMs: r.AverageResponseTime != null ? Number(r.AverageResponseTime) : undefined,
+        avgMs: avg && avg > 0 ? avg : undefined,
         minMs: r.MinimumResponseTime != null ? Number(r.MinimumResponseTime) : undefined,
         maxMs: r.MaximumResponseTime != null ? Number(r.MaximumResponseTime) : undefined,
+        successCount: success,
+        failureCount: r.FailureCount != null ? Number(r.FailureCount) : undefined,
+        okWithoutLatency: data.ping_ok_without_latency || (success != null && success > 0 && (!avg || avg <= 0)),
       });
     } catch (e) {
       setMsg(`Ping ${label}: ${e instanceof Error ? e.message : "erro"}`);
@@ -311,8 +336,14 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
                     {row?.minMs != null && row?.maxMs != null && (
                       <span className="hidden text-muted-foreground sm:inline">{row.minMs}–{row.maxMs}</span>
                     )}
-                    <span className={cn("text-base font-bold", row?.avgMs != null ? "text-emerald-300" : "text-muted-foreground")}>
-                      {row?.avgMs ?? "—"}<span className="text-[10px]">ms</span>
+                    <span className={cn("text-base font-bold", row?.avgMs != null || row?.okWithoutLatency ? "text-emerald-300" : "text-muted-foreground")}>
+                      {row?.avgMs != null && row.avgMs > 0
+                        ? <>{row.avgMs}<span className="text-[10px]">ms</span></>
+                        : row?.okWithoutLatency
+                          ? <span className="text-sm">{row.successCount ?? "OK"}/4 OK</span>
+                          : row?.failureCount
+                            ? <span className="text-sm text-rose-300">falhou</span>
+                            : "—"}
                     </span>
                     <button
                       type="button"
@@ -341,11 +372,18 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
               <button
                 onClick={async () => {
                   setLoading("trace");
+                  setTraceError(null);
                   try {
                     await fetchAuthAPI(`/devices/${deviceId}/actions/traceroute`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ preset: traceHost, max_hops: 8 }) });
                     await new Promise((r) => setTimeout(r, 15000));
-                    const data = await fetchAuthAPI<{ results: Record<string, unknown> }>(`/devices/${deviceId}/diagnostics/traceroute`);
-                    setTraceResult(data.results);
+                    const data = await fetchAuthAPI<{ results: Record<string, unknown>; supported?: boolean; error?: string }>(`/devices/${deviceId}/diagnostics/traceroute`);
+                    if (data.supported === false) {
+                      setTraceResult(null);
+                      setTraceError(data.error ?? "Traceroute não suportado nesta ONT");
+                    } else {
+                      setTraceResult(data.results);
+                      setTraceError(data.error ?? null);
+                    }
                   } finally { setLoading(null); }
                 }}
                 disabled={!!loading}
@@ -353,7 +391,12 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
               >
                 Executar
               </button>
-              {traceResult && (
+              {traceError && (
+                <p className="mt-2 rounded-lg border border-amber-500/25 bg-amber-500/10 px-2 py-1.5 text-[10px] text-amber-200">
+                  {traceError}
+                </p>
+              )}
+              {traceResult && !traceError && (
                 <pre className="mt-2 text-[10px] font-mono bg-black/30 rounded-lg p-2 overflow-auto max-h-28 border border-white/[0.06]">
                   {JSON.stringify(traceResult, null, 2)}
                 </pre>
@@ -375,7 +418,7 @@ export function DeviceDiagnosticsDashboard({ deviceId, snapshot, isOnline = true
                     <span className="text-sm font-medium">{n.ssid}</span>
                     <span className="text-xs text-emerald-400 ml-auto">{n.clients} cliente(s)</span>
                   </div>
-                  <p className="text-[10px] text-muted-foreground mt-1">Canal {n.channel ?? "—"}</p>
+                  <p className="text-[10px] text-muted-foreground mt-1">Canal {n.channel ?? "—"} · {n.band}</p>
                 </div>
               ))}
               <div className="mt-3 space-y-2 border-t border-white/[0.06] pt-3">

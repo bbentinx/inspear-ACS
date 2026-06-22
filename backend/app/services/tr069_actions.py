@@ -309,6 +309,19 @@ def _calc_speed_mbps(bytes_val, start, end) -> float | None:
         return None
 
 
+def _normalize_diag_state(state: Any) -> str | None:
+    if state is None:
+        return None
+    s = str(state)
+    if s in ("Complete", "Completed"):
+        return "Completed"
+    return s
+
+
+def _diag_is_complete(state: Any) -> bool:
+    return str(state or "") in ("Complete", "Completed")
+
+
 async def read_diagnostic_results(serial: str, kind: str = "ping") -> dict:
     from .genieacs import _get_param, extract_wifi_stats
 
@@ -330,8 +343,35 @@ async def read_diagnostic_results(serial: str, kind: str = "ping") -> dict:
         return {"error": "ONT não encontrada no GenieACS"}
 
     results = {p.split(".")[-1]: _scalar(_get_param(doc, p)) for p in paths}
+    raw_state = results.get("DiagnosticsState")
+    norm_state = _normalize_diag_state(raw_state)
 
-    payload: dict = {"kind": kind, "results": results, "state": results.get("DiagnosticsState")}
+    payload: dict = {"kind": kind, "results": results, "state": norm_state or raw_state}
+    if isinstance(raw_state, str) and raw_state.startswith("Error"):
+        payload["error"] = raw_state.replace("_", " ").replace("Error ", "Erro: ")
+
+    if kind == "traceroute":
+        hops = _scalar(_get_param(doc, "InternetGatewayDevice.TraceRouteDiagnostics.RouteHopsNumberOfEntries"))
+        if raw_state is None and hops is None:
+            host_set = _scalar(_get_param(doc, "InternetGatewayDevice.TraceRouteDiagnostics.Host"))
+            if host_set is None:
+                return {
+                    "kind": "traceroute",
+                    "supported": False,
+                    "results": results,
+                    "state": None,
+                    "error": "Traceroute não suportado nesta ONT (Realtek IGD V2.0.03)",
+                }
+
+    if kind == "ping":
+        success = _to_float(results.get("SuccessCount"))
+        failure = _to_float(results.get("FailureCount"))
+        payload["success_count"] = int(success) if success is not None else None
+        payload["failure_count"] = int(failure) if failure is not None else None
+        if _diag_is_complete(raw_state) and success and success > 0:
+            avg = _to_float(results.get("AverageResponseTime"))
+            if avg is None or avg <= 0:
+                payload["ping_ok_without_latency"] = True
     if kind == "speed":
         bytes_val = _to_float(results.get("TestBytesReceived"))
         payload["download_mbps"] = _calc_speed_mbps(

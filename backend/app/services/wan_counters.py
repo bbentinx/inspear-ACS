@@ -188,7 +188,7 @@ def mark_baseline_phase(baseline: dict, results: dict) -> None:
 def diagnostics_completed_after_baseline(results: dict, baseline: dict) -> bool:
     """Evita limpar baseline com resultado TR-069 de teste anterior."""
     mark_baseline_phase(baseline, results)
-    if results.get("DiagnosticsState") != "Completed":
+    if str(results.get("DiagnosticsState") or "") not in ("Completed", "Complete"):
         return False
     if not baseline.get("seen_requested"):
         return False
